@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gallery</title>
+ 
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS for the navbar only -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar-brand {
+            font-size: 24px; /* Adjust as needed */
+        }
+        .navbar-nav .nav-link {
+            font-size: 18px; /* Adjust as needed */
+        }
+        .custom-select {
+            width: 30%;
+            padding: .2rem .5rem; /* Adjust padding */
+            font-size: 14px; /* Adjust font size */
+            line-height: 1.5;
+            background-color: #fff;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+    </style>
+    <script>
+        function setFormAction(id) {
+            var form = document.getElementById('form_' + id);
+            var select = form.querySelector('select[name="action"]');
+            var selectedOption = select.options[select.selectedIndex];
+            form.action = selectedOption.value;
+        }
+        
+        function analyzeForm(event) {
+            event.preventDefault(); // Prevent default form submission
+            
+            var form = event.target.closest('form'); // Get the closest form element
+            var idInput = form.querySelector('input[name="id_value"]');
+            var id = idInput.value;
+        
+            var captionInput = form.querySelector('input[name="caption_' + id + '"]');
+            var caption = captionInput ? captionInput.value : '';
+        
+            if (!captionInput) {
+                captionInput = document.createElement('input');
+                captionInput.type = 'hidden';
+                captionInput.name = 'caption_' + id;
+                form.appendChild(captionInput);
+            }
+            captionInput.value = caption;
+        
+            form.action = "{% url 'analyze' %}"; // Set form action to the 'analyze' URL
+            form.submit(); // Submit the form
+        }
+        
+        
+    </script>
+</head>
+<body>
+    
+   {% for i in Cap_img %}
+    <form id="form_{{ i.id }}" method="POST" action="{% url 'sub' %}">{% csrf_token %}
+        <div class="col-md-6" style="margin-bottom: 20px;">
+            <input type="text" value="{{ i.id }}" name="id_value" readonly/>
+            
+            <img src="{{ i.img.url }}" class="img-responsive" style="width: 200px; height: 200px; float: left; margin-right: 10px;" />
+            <br/>
+            <label>Select your model:</label>
+            <select name="action" onchange="setFormAction({{ i.id }})" class="custom-select">
+                <option value="">--Select Model--</option>
+                <option value="{% url 'cap_xceplstm' %}">xception_LSTM</option>
+                <option value="{% url 'cap_xcepgru' %}">xception_GRU</option>
+                <option value="{% url 'cap_vgglstm' %}">vgg16_LSTM</option>
+                <option value="{% url 'cap_vgggru' %}">vgg16_GRU</option>
+                <option value="{% url 'cap_attenvgg' %}">Attention_GRU_VGG16</option>
+                <option value="{% url 'cap_attenden' %}">Attention_GRU_DenseNet</option>
+                <option value="{% url 'cap_attenxcep' %}">Attention_GRU_Xcep</option>
+                <option value="{% url 'cap_denvgg' %}">DenseNet_GRU</option>
+                <option value="{% url 'cap_denlstm' %}">DenseNet_LSTM</option>
+            </select>
+            <button type="submit" class="btn btn-primary mb-3">Submit</button><br/>
+            <label for="cap_{{ i.id }}">Enter your caption:</label>
+            <input name="caption_{{ i.id }}" id="cap_{{ i.id }}" type="text"/><br/>
+            <button type="button" onclick="analyzeForm(event)" class="btn btn-primary mb-3">Analyze</button><br/>
+        </div>
+    </form>
+{% endfor %}
+
+
+    <!-- Bootstrap JS and dependencies (jQuery, Popper.js) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+{% endblock %}
